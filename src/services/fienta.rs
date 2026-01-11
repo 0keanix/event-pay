@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone, Utc};
 use reqwest::Client;
 use serde::Deserialize;
 
@@ -37,9 +37,13 @@ impl FientaService {
 
     /// Парсинг даты в формате Fienta: "2025-12-26 21:00:00"
     fn parse_datetime(&self, s: &str) -> Option<DateTime<Utc>> {
-        let with_tz = format!("{}+04:00", s.replace(' ', "T"));
-        DateTime::parse_from_rfc3339(&with_tz)
-            .ok()
+        // Парсим как "наивную" дату без timezone
+        let naive = NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").ok()?;
+
+        // Привязываем к timezone из self и конвертируем в UTC
+        self.timezone
+            .from_local_datetime(&naive)
+            .single()
             .map(|dt| dt.with_timezone(&Utc))
     }
 
