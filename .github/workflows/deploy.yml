@@ -6,8 +6,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  API_IMAGE: ghcr.io/${{ github.repository }}/api
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}/frontend
+  API_IMAGE: ghcr.io/0keanix/event-pay/api
+  FRONTEND_IMAGE: ghcr.io/0keanix/event-pay/frontend
 
 jobs:
   build-and-push:
@@ -53,38 +53,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Copy files to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VDS_HOST }}
-          username: ${{ secrets.VDS_USER }}
-          key: ${{ secrets.VDS_SSH_KEY }}
-          source: "docker-compose.yml,nginx/"
-          target: "/opt/eventpay"
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VDS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VDS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to VDS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VDS_HOST }}
-          username: ${{ secrets.VDS_USER }}
-          key: ${{ secrets.VDS_SSH_KEY }}
-          script: |
+      - name: Copy files to server
+        run: |
+          scp -i ~/.ssh/deploy_key -r docker-compose.yml nginx/ ${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}:/opt/eventpay/
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }} << 'ENDSSH'
             cd /opt/eventpay
-            
-            # Login to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Create .env file
-            cat > .env << EOF
-            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
-            TELEGRAM_THREAD_ID=${{ secrets.TELEGRAM_THREAD_ID }}
-            FIENTA_ORGANIZER_ID=${{ secrets.FIENTA_ORGANIZER_ID }}
-            EOF
-            
-            # Pull and restart
+          
+            # Create .env if not exists
+            if [ ! -f .env ]; then
+              cat > .env << 'ENVEOF'
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_THREAD_ID=${{ secrets.TELEGRAM_THREAD_ID }}
+          FIENTA_ORGANIZER_ID=${{ secrets.FIENTA_ORGANIZER_ID }}
+          ENVEOF
+            fi
+          
+            # Login to GHCR
+            echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u 0keanix --password-stdin
+          
+            # Deploy
             docker compose pull
             docker compose up -d --remove-orphans
-            
-            # Cleanup old images
+          
+            # Cleanup
             docker image prune -f
+          ENDSSH
