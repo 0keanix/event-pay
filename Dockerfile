@@ -18,8 +18,8 @@ FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/eventpay /app/eventpay
+COPY --from=builder /app/target/release/eventpay /app/event-pay
 
 EXPOSE 3000
 
-CMD ["/app/eventpay"]
+CMD ["/app/event-pay"]
