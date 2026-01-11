@@ -53,39 +53,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VDS_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VDS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Copy files to server
-        run: |
-          scp -i ~/.ssh/deploy_key -r docker-compose.yml nginx/ ${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }}:/opt/eventpay/
-
-      - name: Deploy
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VDS_USER }}@${{ secrets.VDS_HOST }} << 'ENDSSH'
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          script: |
+            mkdir -p /opt/eventpay/nginx
             cd /opt/eventpay
-          
-            # Create .env if not exists
-            if [ ! -f .env ]; then
-              cat > .env << 'ENVEOF'
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_THREAD_ID=${{ secrets.TELEGRAM_THREAD_ID }}
-          FIENTA_ORGANIZER_ID=${{ secrets.FIENTA_ORGANIZER_ID }}
-          ENVEOF
-            fi
-          
-            # Login to GHCR
+            
+            # Скачиваем docker-compose.yml и nginx.conf напрямую из репозитория
+            curl -sL https://raw.githubusercontent.com/0keanix/event-pay/main/docker-compose.yml -o docker-compose.yml
+            curl -sL https://raw.githubusercontent.com/0keanix/event-pay/main/nginx/nginx.conf -o nginx/nginx.conf
+            
+            # Создаём .env из GitHub Secrets (каждый раз свежий)
+            cat > .env << 'ENVEOF'
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+            TELEGRAM_THREAD_ID=${{ secrets.TELEGRAM_THREAD_ID }}
+            FIENTA_ORGANIZER_ID=${{ secrets.FIENTA_ORGANIZER_ID }}
+            ENVEOF
+            
+            # Логин в GitHub Container Registry
             echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u 0keanix --password-stdin
-          
-            # Deploy
+            
+            # Деплой
             docker compose pull
             docker compose up -d --remove-orphans
-          
-            # Cleanup
             docker image prune -f
-          ENDSSH
