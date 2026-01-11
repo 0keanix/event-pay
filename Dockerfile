@@ -18,8 +18,10 @@ FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/eventpay /app/event-pay
+# ✅ Исправлено: event-pay вместо eventpay
+COPY --from=builder /app/target/release/event-pay /app/event-pay
 
 EXPOSE 3000
 
+# ✅ Исправлено: event-pay вместо eventpay
 CMD ["/app/event-pay"]
