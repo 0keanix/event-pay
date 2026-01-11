@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   api:
-    build: .
-    ports:
-      - "3000:3000"
+    image: ghcr.io/${GITHUB_REPOSITORY}/api:latest
+    container_name: eventpay-api
+    restart: unless-stopped
     environment:
       - BIND_ADDRESS=0.0.0.0:3000
       - RUST_LOG=info
@@ -12,4 +12,33 @@ services:
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - TELEGRAM_THREAD_ID=${TELEGRAM_THREAD_ID}
       - FIENTA_ORGANIZER_ID=${FIENTA_ORGANIZER_ID:-28251}
+    networks:
+      - eventpay
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY}/frontend:latest
+    container_name: eventpay-frontend
     restart: unless-stopped
+    networks:
+      - eventpay
+
+  nginx:
+    image: nginx:alpine
+    container_name: eventpay-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/certbot:/var/www/certbot:ro
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - eventpay
+
+networks:
+  eventpay:
+    driver: bridge
