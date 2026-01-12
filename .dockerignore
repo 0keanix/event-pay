@@ -1,0 +1,43 @@
+# Build artifacts
+target/
+Cargo.lock
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Frontend (separate build)
+frontend/
+
+# Nginx config (mounted separately)
+nginx/
+
+# Environment files
+.env*
+!.env.example
+
+# Tests (not needed in production image)
+tests/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Misc
+*.log
+.DS_Store
