@@ -3,6 +3,14 @@ name = "event-pay"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "event_pay"
+path = "src/lib.rs"
+
+[[bin]]
+name = "event-pay"
+path = "src/main.rs"
+
 [dependencies]
 # Web framework
 axum = { version = "0.8", features = ["multipart"] }
@@ -28,6 +36,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Error handling
 thiserror = "2.0"
 anyhow = "1.0"
+
+[dev-dependencies]
+tower = "0.5"
 
 [profile.release]
 lto = true

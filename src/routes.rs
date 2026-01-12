@@ -1,4 +1,5 @@
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
@@ -22,7 +23,8 @@ pub fn create_router(state: AppState) -> Router {
     // API routes
     let api = Router::new()
         .route("/bank-transfer", post(payments::bank_transfer))
-        .route("/usdt", post(payments::usdt));
+        .route("/usdt", post(payments::usdt))
+        .layer(DefaultBodyLimit::max(35 * 1024 * 1024)); // 35MB
 
     // Webhook routes
     let webhooks = Router::new().route("/fienta", post(webhooks::fienta));

@@ -7,11 +7,21 @@ pub struct Config {
     pub fienta: FientaConfig,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TelegramConfig {
     pub bot_token: String,
     pub chat_id: String,
     pub thread_id: Option<i64>,
+}
+
+impl std::fmt::Debug for TelegramConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TelegramConfig")
+            .field("bot_token", &"[REDACTED]")
+            .field("chat_id", &self.chat_id)
+            .field("thread_id", &self.thread_id)
+            .finish()
+    }
 }
 
 #[derive(Debug, Clone)]

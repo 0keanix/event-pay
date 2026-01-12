@@ -1,19 +1,6 @@
-mod config;
-mod error;
-mod handlers;
-mod routes;
-mod services;
-
 use std::sync::Arc;
 
-use config::Config;
-use services::{FientaService, TelegramService};
-
-#[derive(Clone)]
-pub struct AppState {
-    pub telegram: Arc<TelegramService>,
-    pub fienta: Arc<FientaService>,
-}
+use event_pay::{config::Config, routes, services::{FientaService, TelegramService}, AppState};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -24,7 +11,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("eventpay=debug".parse()?)
+                .add_directive("event_pay=debug".parse()?)
         )
         .init();
 
