@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output (created during docker build)
+dist/
+
+# Development files
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Tests
+*.test.js
+*.spec.js
+__tests__/
+coverage/
+
+# Misc
+README.md
+*.md

@@ -13,4 +13,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  build: {
+    // Optimize chunk splitting
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['framer-motion', 'lucide-react'],
+        },
+      },
+    },
+    // Minification
+    minify: 'esbuild',
+    // Source maps only for errors
+    sourcemap: false,
+    // Target modern browsers
+    target: 'es2020',
+  },
 })
