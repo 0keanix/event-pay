@@ -26,7 +26,7 @@ impl IntoResponse for AppError {
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
             AppError::Telegram(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
             AppError::Fienta(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
-            AppError::Internal(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()),
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string()),
         };
 
         tracing::error!(?self, "Request error");

@@ -164,22 +164,15 @@ impl TelegramService {
 
 /// Экранирование спецсимволов Markdown
 fn escape_markdown(text: &str) -> String {
-    text.replace('_', r"\_")
-        .replace('*', r"\*")
-        .replace('[', r"\[")
-        .replace(']', r"\]")
-        .replace('(', r"\(")
-        .replace(')', r"\)")
-        .replace('~', r"\~")
-        .replace('`', r"\`")
-        .replace('>', r"\>")
-        .replace('#', r"\#")
-        .replace('+', r"\+")
-        .replace('-', r"\-")
-        .replace('=', r"\=")
-        .replace('|', r"\|")
-        .replace('{', r"\{")
-        .replace('}', r"\}")
-        .replace('.', r"\.")
-        .replace('!', r"\!")
+    const SPECIAL: &[char] = &['_', '*', '[', ']', '(', ')', '~', '`',
+        '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
+
+    let mut result = String::with_capacity(text.len() * 2);
+    for ch in text.chars() {
+        if SPECIAL.contains(&ch) {
+            result.push('\\');
+        }
+        result.push(ch);
+    }
+    result
 }
